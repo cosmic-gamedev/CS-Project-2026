@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+
+# SQL credentials
+Miscellaneous Assets/SQL Database Credentials.txt
