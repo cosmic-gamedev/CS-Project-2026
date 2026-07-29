@@ -9,28 +9,4 @@ Menu
  | |Projectiles
  | |Armour
  |Play
-Backend-Frontend Integration:
 
-Tables:-------------------
-
-Shop Table (User ID (PRIMARYKEY), Username, Owned Mechs (FOREIGN KEY REF INVENTORY), Owned Projectiles (FOREIGN KEY REF INVENTORY), Owned Armour (FOREIGN KEY REF INVENTORY))
-
-Inventory Table (Mechs, Projectiles, Armour)
-
-Player (User ID, Username, Matches Won, Matches Lost, Total Matches, XP, Streak, Available to Play)
-
-Game (Game ID (PRIMARYKEY), Player 1, Player 2, Playing, Projectile Cordinate, Launch Angle, Launch Speed, Player 1 Cordinate, Player 2 Cordinate, Player 1 Damage, Player 2 Damage, Player 1 Login, Player 2 Login, Winner)
-
-Idea:--------------------
-
-Shop table is updated once a player buys items
-Inventory table is updated via server once new items are added by the developers
-Player table is updated according to the player stats
-Once a player clicks play, request is sent to the MySQL database, if players are found then they are matched
-
-(Game)
-Playing attribute shifts between 1 and 2, to indicate which player's turn is next
-Projectile cordinate is calculated by Python, once the projectile trajectory is calculated the projectile is thrown and the landing cordinates are sent to the MySQL server to make sure the opponent can see the projectile too, animations are calculated according to the launch angle and launch speed.
-If players take damage it is sent to MySQL server to update damage stats for the opponent
-GameID is a primary key assigned to every game. 
-Game data is deleted once the winner is selected and both users quit the game
