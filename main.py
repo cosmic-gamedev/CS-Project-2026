@@ -26,7 +26,7 @@ def resource_path(relative_path):
 #===MYSQL-SERVER-CONNECTION===
 
 try:
-    db = mysql.connect(
+    global db = mysql.connect(
         host = "mysql-1c132f4a-cs-project-2026-27.a.aivencloud.com",
         database = "MechGame",
         port = 26033,
@@ -98,7 +98,8 @@ def load_data():
         data_not_found = True
         return default_data
 
-game_data = load_data()
+global game_data = load_data()
+
 if data_not_found:
     cursor.execute("SELECT UserID FROM Player ORDER BY UserID DESC LIMIT 1")
     result = cursor.fetchone()
@@ -119,6 +120,7 @@ if data_not_found:
 #===GAME-INITIALISATION===
 
 game_state = "TITLE"
+game_connected = False
 
 fade_status = "IDLE"
 fade_action = None
@@ -155,6 +157,51 @@ title_buttons = (
 )
 title_rects = tuple(pygame.FRect(r).inflate(30, 30) for r in title_buttons)
 
+#===SQL-SERVER-COMMANDS===
+
+def waiting_for_player():
+    cursor = db.cursor(dictionary=True)
+    cursor.execute(f"UPDATE Player SET Status = 'Online' WHERE UserID = {game_data['user_id']}")
+    db.commit()
+    cursor.execute(f"SELECT UserID FROM Player WHERE Status = 'Online' AND UserID != {game_data['user_id']}")
+    opponent = cursor.fetchone()
+
+    if opponent != None:
+        opponent_id = oppenent["UserID"]
+        cursor.execute(f"INSERT INTO Game (Player1, Player2, CurrentTurn, Playing, Player1Health, Player2Health, Player1X, Player1Y, Player2X, Player2Y, LaunchAngle, LaunchSpeed, MapName, Winner, CoinsAwarded, XPAwarded, Projectile) values ({game_data['user_id']}, {opponent_id}, {game_data['user_id']}, 1, 100, 100, 0, 0, 0, 0, 0, 0, 'Earth', 0, 0, 0, NULL)")
+        game_id = cursor.lastrowid
+
+        cursor.execute("UPDATE Players SET Status = 'Offline' WHERE UserID = game_data['user_id']")
+        db.commit()
+
+        cursor.close()
+        return game_id, "P1"
+
+    else:
+        db.commit()
+        start_time = time.time()
+        timeout_time = 30
+
+        while time.time() - start_time < timeout_time:
+            cursor.execute(f"SELECT GameID FROM Game WHERE (Player1 = {game_data['user_id']} or Player2 = {game_data['user_id']}) AND Playing = 1 ORDER BY GameID DESC LIMIT 1")
+            match = cursor.fetchone()
+
+            if match != None:
+                cursor.close()
+                return match["GameID"], "P2"
+
+            time.sleep(1)
+
+        else:
+            cursor.execute(f"UPDATE Players SET Status = 'Offline' WHERE UserID = {game_data['user_id']}")
+            db.commit()
+            cursor.close()
+            return None, None
+
+def
+
+#===MAIN-LOOP===
+
 if connected:
     print("Connected")
     while True:
@@ -174,6 +221,9 @@ if connected:
                     if game_state == "TITLE":
                         if title_buttons[2].collidepoint(pos):
                             fade_action = "GOTOSETTINGS"
+                            fade_status = "FADE_OUT"
+                        if title_buttons[1].collidepoint(pos):
+                            fade_action = "GOTOPLAY"
                             fade_status = "FADE_OUT"
                         if title_buttons[3].collidepoint(pos):
                             fade_action = "GOTOLEADERBOARDS"
@@ -245,7 +295,8 @@ if connected:
             pass
 
         elif game_state == "PLAYING":
-            pass
+            if not game_connected:
+
 
         #===FINAL===
 
